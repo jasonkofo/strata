@@ -1,11 +1,13 @@
-package sqlgen
+package strata
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Where is the abstraction of a where condition
 type Where struct {
 	LHSField       *TableField
-	RHSField       *TableField
+	RHSField       interface{}
 	ComparisonType ComparisonType
 }
 
@@ -13,6 +15,24 @@ type Where struct {
 type Wheres struct {
 	Wheres      []Where
 	IsInclusive bool
+}
+
+func (w *Where) rightFieldSQL() string {
+	if w.RHSField == nil {
+		return ""
+	}
+	switch rhs := w.RHSField.(type) {
+	case *TableField:
+		return rhs.SQL()
+	case string:
+		return insertSingleQuotes(rhs)
+	case int:
+		return fmt.Sprintf("%v", rhs)
+	case int64:
+		return fmt.Sprintf("%v", rhs)
+	default:
+		return ""
+	}
 }
 
 // WhereSet is a set of Where objects - they will be marshalled into a
@@ -26,15 +46,15 @@ func (w *Where) SQL() (string, error) {
 		return "", fmt.Errorf("No left hand field object provided")
 	}
 
-	// Almost chose to snap the comparison type to be IsNotNull in the
-	if w.ComparisonType.NeedsRHS() && w.RHSField == nil {
+	rhs := w.rightFieldSQL()
+	if w.ComparisonType.NeedsRHS() && rhs == "" {
 		return "", fmt.Errorf("No right hand field object provided - is necessary for comparison type")
 	}
 
 	return delimitSpace(
 		w.LHSField.SQL(),
 		w.ComparisonType.SQL(),
-		w.RHSField.SQL(),
+		rhs,
 	), nil
 }
 

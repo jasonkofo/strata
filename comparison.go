@@ -1,4 +1,4 @@
-package sqlgen
+package strata
 
 // ComparisonType is a type of comparison
 type ComparisonType int

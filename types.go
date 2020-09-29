@@ -1,20 +1,8 @@
-package sqlgen
+package strata
 
 import (
 	"fmt"
 	"strconv"
-)
-
-// JoinType for JoinTable
-type JoinType int
-
-const (
-	// Left join
-	Left JoinType = iota
-	// Right join
-	Right JoinType = iota
-	// Inner join
-	Inner JoinType = iota
 )
 
 // SQLElement definition
@@ -51,12 +39,21 @@ func (q *Query) NestedWheres() (string, error) {
 }
 
 // NestedTables definition
-func (q *Query) NestedTables() string {
-	tables := ""
+func (q *Query) NestedTables() (string, error) {
+	var (
+		tables = ""
+		jt     = ""
+		err    error
+	)
 	q.baseTable.fixFields()
 	tables += q.baseTable.SQL()
-	tables += q.joinTables.SQL()
-	return tables
+
+	if jt, err = q.joinTables.SQL(); err != nil {
+		return "", err
+	}
+
+	tables += jt
+	return tables, nil
 }
 
 // SQL returns the sql representation of the Query hierarchy of
@@ -69,11 +66,11 @@ func (q *Query) SQL() (string, error) {
 	var (
 		nf         = q.NestedFields()
 		sql        = delimitSpace("SELECT", nf)
-		tables     = q.NestedTables()
-		where, err = q.NestedWheres()
+		tables, e1 = q.NestedTables()
+		where, e2  = q.NestedWheres()
 	)
-	if err != nil {
-		return "", nil
+	if e2 != nil || e1 != nil {
+		return "", fmt.Errorf("The following errors were encountered:\n(i)\tTABLES:%v\n(2)\tWHERE:%v", e1, e2)
 	}
 
 	sql = delimitSpace(sql, "FROM", tables)

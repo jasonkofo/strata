@@ -1,4 +1,4 @@
-package sqlgen
+package strata
 
 import (
 	"strings"

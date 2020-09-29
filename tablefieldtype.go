@@ -1,4 +1,4 @@
-package sqlgen
+package strata
 
 // FieldType is the enumerated fieldtype
 type FieldType int

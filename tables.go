@@ -1,4 +1,4 @@
-package sqlgen
+package strata
 
 import "reflect"
 
@@ -30,6 +30,12 @@ func (t *Table) AddFields(fields ...TableField) {
 		fields[i].Alias = t.Alias
 	}
 	t.Fields.append(fields...)
+}
+
+// AddWhereCondition adds a where limitation to the table
+func (t *Table) AddWhereCondition(lhs *TableField, rhs interface{}, comparisonType ComparisonType) error {
+
+	return nil
 }
 
 // AddSimpleStringFields adds all the desired string fields

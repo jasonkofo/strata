@@ -1,4 +1,4 @@
-package sqlgen
+package strata
 
 import "strings"
 
@@ -58,24 +58,24 @@ func (tf *TableFields) fieldByName(name string) *TableField {
 		return nil
 	}
 
-	if idx := tf.GetIndex(name); idx != -1 {
-		return tf.GetField(idx)
+	if idx := tf.getIndex(name); idx != -1 {
+		return tf.getField(idx)
 	}
 
 	return nil
 }
 
-// GetField returns the
-func (tf *TableFields) GetField(i int) *TableField {
+// getField returns the
+func (tf *TableFields) getField(i int) *TableField {
 	if tf == nil || i < 0 || i > len(*tf)-1 {
 		return nil
 	}
 	return &(*tf)[i]
 }
 
-// GetIndex returns the index of the first element having
+// getIndex returns the index of the first element having
 // the given name
-func (tf *TableFields) GetIndex(name string) int {
+func (tf *TableFields) getIndex(name string) int {
 	for i, field := range *tf {
 		if field.Name == name {
 			return i
@@ -134,6 +134,38 @@ func makeField(alias *string, name, friendlyName, formattedName string, _type Fi
 		FormattedName: formattedName,
 		Type:          _type,
 	}
+}
+
+func field(name string, _type FieldType) TableField {
+	return TableField{
+		Name: name,
+		Type: _type,
+	}
+}
+
+// Field returns a TableField of parsed type
+func Field(name string, _type string) TableField {
+	return field(name, ParseFieldType(_type))
+}
+
+// StringField returns a TableField of string type
+func StringField(name string) TableField {
+	return field(name, String)
+}
+
+// NumberField returns a TableField of number type
+func NumberField(name string) TableField {
+	return field(name, Number)
+}
+
+// DateField returns a TableField of date type
+func DateField(name string) TableField {
+	return field(name, Date)
+}
+
+// GeometryField returns a TableField of Geometry type
+func GeometryField(name string) TableField {
+	return field(name, Geometry)
 }
 
 func (tf *TableFields) addStringField(alias *string, name, friendlyName, formattedName string) {
