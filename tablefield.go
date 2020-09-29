@@ -231,3 +231,20 @@ func (tf *TableFields) SQL() string {
 
 	return sql
 }
+
+// Where returns a where condition on the given field
+func (tf *TableField) Where(comparisonType ComparisonType, rhs interface{}) *Wheres {
+	if tf == nil || rhs == nil {
+		return nil
+	}
+	return &Wheres{
+		IsInclusive: false,
+		Wheres: []Where{
+			{
+				LHSField:       tf,
+				RHSField:       rhs,
+				ComparisonType: comparisonType,
+			},
+		},
+	}
+}

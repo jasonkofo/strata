@@ -25,7 +25,8 @@ func (w *Where) rightFieldSQL() string {
 	case *TableField:
 		return rhs.SQL()
 	case string:
-		return insertSingleQuotes(rhs)
+		islike := !w.ComparisonType.IsExact()
+		return insertStringLiterals(rhs, islike, islike)
 	case int:
 		return fmt.Sprintf("%v", rhs)
 	case int64:

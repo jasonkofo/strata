@@ -4,8 +4,8 @@ package strata
 type ComparisonType int
 
 const (
-	// Exact comparisons will insert equality comparisons
-	Exact ComparisonType = iota
+	// Equal comparisons will insert equality comparisons
+	Equal ComparisonType = iota
 	// NotEqual comparisons will insert not equal comparisons
 	NotEqual
 	// Like comparison will insert LIKE comparator phrase
@@ -20,6 +20,12 @@ const (
 	LTreeSubsists
 	// Remember to add changes to function GetComparisonOperator()
 )
+
+// IsExact refers to whether or not the comparison type is looking
+// for exact equality
+func (t ComparisonType) IsExact() bool {
+	return t != Like && t != ILike
+}
 
 // SQL operator returns the string representation of the equality type
 func (t *ComparisonType) SQL() string {
@@ -37,7 +43,7 @@ func (t *ComparisonType) SQL() string {
 		return "IS NULL"
 	case LTreeSubsists:
 		return "@>"
-	case Exact:
+	case Equal:
 		return ""
 	case IsNotNull:
 		fallthrough

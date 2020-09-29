@@ -1,6 +1,9 @@
 package strata
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 // Table is an abstraction of the table type
 type Table struct {
@@ -81,6 +84,19 @@ func (t *Table) AddFieldByProperties(name, friendlyName, formattedName, _type st
 // FieldByName returns a field by the name
 func (t *Table) FieldByName(name string) *TableField {
 	return t.Fields.fieldByName(name)
+}
+
+// SetWhereConditions creates a where condition on the table object on an existing object in the object.
+// It first inspects if the field with the given name exists in the object, if not, returning an error
+// Then it attempts to create a where condition given the predicate and add it to the table object
+func (t *Table) SetWhereConditions(fieldName string, comparisonType ComparisonType, rhs interface{}) error {
+	where := t.FieldByName(fieldName).Where(comparisonType, rhs)
+	if where == nil {
+		return fmt.Errorf("Could not find field %v in the Table object", fieldName)
+	}
+
+	t.WhereConditions = *where
+	return nil
 }
 
 // SQL returns the name of the table object represented as an SQL selector

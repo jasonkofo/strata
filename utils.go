@@ -50,6 +50,19 @@ func insertSingleQuotes(selector string) string {
 	return "'" + escapeLiterals(selector, "'") + "'"
 }
 
+func insertStringLiterals(selector string, prependWildcard bool, appendWildcard bool) string {
+	sql := "'"
+	if prependWildcard {
+		sql += "%"
+	}
+	sql += escapeLiterals(selector, "'")
+	if appendWildcard {
+		sql += "%"
+	}
+	sql += "'"
+	return sql
+}
+
 func escapeLiterals(selector string, args ...string) string {
 	out := ""
 	for _, arg := range args {
