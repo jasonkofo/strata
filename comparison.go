@@ -18,6 +18,12 @@ const (
 	IsNull
 	// LTreeSubsists prints out the SQL for the operator
 	LTreeSubsists
+	// NotILike definition
+	NotILike
+	//NotLike definition
+	NotLike
+	// Locate definition
+	Locate
 	// Remember to add changes to function GetComparisonOperator()
 )
 
@@ -45,6 +51,12 @@ func (t *ComparisonType) SQL() string {
 		return "@>"
 	case Equal:
 		return ""
+	case NotLike:
+		return "NOT LIKE"
+	case NotILike:
+		return "NOT ILIKE"
+	case Locate:
+		return "LOCATE"
 	case IsNotNull:
 		fallthrough
 	default:

@@ -1,6 +1,7 @@
 package strata
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 )
@@ -59,6 +60,8 @@ func (q *Query) NestedTables() (string, error) {
 // SQL returns the sql representation of the Query hierarchy of
 // objects
 func (q *Query) SQL() (string, error) {
+	var buf bytes.Buffer
+	buf.Grow(300)
 	if q == nil {
 		return "", fmt.Errorf("Query object is undefined - cannot create a union")
 	}
@@ -70,12 +73,13 @@ func (q *Query) SQL() (string, error) {
 		where, e2  = q.NestedWheres()
 	)
 	if e2 != nil || e1 != nil {
-		return "", fmt.Errorf("The following errors were encountered:\n(i)\tTABLES:%v\n(2)\tWHERE:%v", e1, e2)
+		return "", fmt.Errorf("The following errors were encountered:\n(1)\tTABLES:\t%v\n(2)\tWHERE:\t%v", e1, e2)
 	}
 
 	sql = delimitSpace(sql, "FROM", tables)
 
 	if where != "" {
+		fmt.Println(where)
 		sql = delimitSpace(sql, "WHERE", where)
 	}
 
@@ -106,6 +110,7 @@ func (q *Query) SetBaseTableFromProperties(name, schema string) {
 func (q *Query) AddJoinTables(tables ...JoinTable) {
 	for _, table := range tables {
 		one := randomString(4)
+		table.Alias = &one
 		table.Fields.setAlias(&one)
 		q.joinTables.append(table)
 	}

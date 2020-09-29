@@ -1,17 +1,22 @@
 package strata
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 // JoinType for JoinTable
 type JoinType int
 
 const (
-	// Left join
-	Left JoinType = iota
-	// Right join
-	Right JoinType = iota
-	// Inner join
-	Inner JoinType = iota
+	// LeftJoin join
+	LeftJoin JoinType = iota
+	// RightJoin type
+	RightJoin
+	// InnerJoin type
+	InnerJoin
+	// OuterJoin type
+	OuterJoin
 )
 
 // SQL returns the SQL representation of the join type
@@ -20,12 +25,14 @@ func (jt *JoinType) SQL() string {
 		return ""
 	}
 	switch *jt {
-	case Right:
+	case RightJoin:
 		return "RIGHT"
-	case Inner:
+	case InnerJoin:
 		return "INNER"
-	case Left:
+	case LeftJoin:
 		return "LEFT"
+	case OuterJoin:
+		return "OUTER"
 	default:
 		return ""
 	}
@@ -90,17 +97,26 @@ func (jt *JoinTables) SQL() (string, error) {
 		return "", err
 	}
 
-	sql := ""
+	var buf bytes.Buffer
+	buf.Grow(150)
 	for i, table := range *jt {
 		if i > 0 {
-			sql += ", "
+			buf.WriteString(", ")
 		}
-		sql += table.JoinType.SQL() + " JOIN "
-		sql += table.LHSField.SQL() + " "
-		sql += table.ComparisonType.SQL()
-		sql += table.RHSField.SQL()
+		buf.WriteString(" " + table.JoinType.SQL() + " JOIN ")
+		buf.WriteString(table.SQL())
+		buf.WriteString(" ON ")
+		buf.WriteString(table.LHSField.SQL() + " ")
+		buf.WriteString(table.ComparisonType.SQL() + " ")
+		if !table.ComparisonType.IsExact() {
+			buf.WriteString("'%' + ")
+		}
+		buf.WriteString(table.RHSField.SQL() + " ")
+		if !table.ComparisonType.IsExact() {
+			buf.WriteString(" + '%' ")
+		}
 	}
-	return sql, nil
+	return buf.String(), nil
 }
 
 func (jt *JoinTables) append(tables ...JoinTable) {
@@ -121,4 +137,98 @@ func (jt *JoinTables) fixFields() {
 	for _, tables := range *jt {
 		tables.fixFields()
 	}
+}
+
+func makeJoinTable(name, schema string, _type JoinType) *JoinTable {
+	return &JoinTable{
+		Table: Table{
+			Name: name, Schema: schema,
+		},
+		JoinType: _type,
+	}
+}
+
+// MakeLeftJoinTable returns a join table with
+func MakeLeftJoinTable(name, schema string) *JoinTable {
+	return makeJoinTable(name, schema, LeftJoin)
+}
+
+// MakeRightJoinTable returns a join table with
+func MakeRightJoinTable(name, schema string) *JoinTable {
+	return makeJoinTable(name, schema, RightJoin)
+}
+
+// MakeInnerJoinTable returns a join table with
+func MakeInnerJoinTable(name, schema string) *JoinTable {
+	return makeJoinTable(name, schema, InnerJoin)
+}
+
+// MakeOuterJoinTable returns a join table with
+func MakeOuterJoinTable(name, schema string) *JoinTable {
+	return makeJoinTable(name, schema, OuterJoin)
+}
+
+func (jt *JoinTable) setRHSField(field *TableField) {
+	if field == nil {
+		return
+	}
+	jt.RHSField = field
+}
+
+// SetEqualTo is some syntactic sugar for setting the comparison operator to equality
+func (jt *JoinTable) SetEqualTo(field *TableField) *JoinTable {
+	jt.ComparisonType = Equal
+	jt.setRHSField(field)
+	return jt
+}
+
+// SetNotEqualTo is some syntactic sugar for setting the comparison operator to not equality
+func (jt *JoinTable) SetNotEqualTo(field *TableField) *JoinTable {
+	jt.ComparisonType = NotEqual
+	jt.setRHSField(field)
+	return jt
+}
+
+// SetLHSField is some syntactic sugar for setting the lhs field
+func (jt *JoinTable) SetLHSField(name string) *JoinTable {
+	f := jt.FieldByName(name)
+	if f == nil {
+		return jt
+	}
+	jt.LHSField = f
+	return jt
+}
+
+// SetILike is some syntactic sugar for setting the comparison operator to ILike
+func (jt *JoinTable) SetILike(field *TableField) *JoinTable {
+	jt.ComparisonType = ILike
+	jt.setRHSField(field)
+	return jt
+}
+
+// SetLike is some syntactic sugar for setting the comparison operator to Like
+func (jt *JoinTable) SetLike(field *TableField) *JoinTable {
+	jt.ComparisonType = Like
+	jt.setRHSField(field)
+	return jt
+}
+
+// SetNotILike is some syntactic sugar for setting the comparison operator to NotILike
+func (jt *JoinTable) SetNotILike(field *TableField) *JoinTable {
+	jt.ComparisonType = NotILike
+	jt.setRHSField(field)
+	return jt
+}
+
+// SetNotLike is some syntactic sugar for setting the comparison operator to NotLike
+func (jt *JoinTable) SetNotLike(field *TableField) *JoinTable {
+	jt.ComparisonType = NotLike
+	jt.setRHSField(field)
+	return jt
+}
+
+// WithFields is a join table wrapper that adds the given fields to the
+func (jt *JoinTable) WithFields(fields ...TableField) *JoinTable {
+	jt.AddFields(fields...)
+	return jt
 }

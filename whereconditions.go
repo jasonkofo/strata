@@ -116,12 +116,15 @@ func (ws *WhereSet) append(whereSet ...Wheres) {
 func (ws *WhereSet) SQL(whereSet ...Wheres) (string, error) {
 	sql := ""
 	for i, where := range *ws {
-		_w, err := where.SQL()
-		if err != nil {
-			return "", err
+		if where.Wheres == nil || len(where.Wheres) == 0 {
+			break
 		}
 		if i > 0 {
 			sql += " OR "
+		}
+		_w, err := where.SQL()
+		if err != nil {
+			return "", err
 		}
 		sql += _w
 	}
