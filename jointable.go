@@ -106,12 +106,12 @@ func (jt *JoinTables) SQL() (string, error) {
 		buf.WriteString(" " + table.JoinType.SQL() + " JOIN ")
 		buf.WriteString(table.SQL())
 		buf.WriteString(" ON ")
-		buf.WriteString(table.LHSField.SQL() + " ")
+		buf.WriteString(table.LHSField.WhereClauseSQL() + " ")
 		buf.WriteString(table.ComparisonType.SQL() + " ")
 		if !table.ComparisonType.IsExact() {
 			buf.WriteString("'%' + ")
 		}
-		buf.WriteString(table.RHSField.SQL() + " ")
+		buf.WriteString(table.RHSField.WhereClauseSQL() + " ")
 		if !table.ComparisonType.IsExact() {
 			buf.WriteString(" + '%' ")
 		}

@@ -23,7 +23,7 @@ func (w *Where) rightFieldSQL() string {
 	}
 	switch rhs := w.RHSField.(type) {
 	case *TableField:
-		return rhs.SQL()
+		return rhs.WhereClauseSQL()
 	case string:
 		islike := !w.ComparisonType.IsExact()
 		return insertStringLiterals(rhs, islike, islike)
@@ -53,7 +53,7 @@ func (w *Where) SQL() (string, error) {
 	}
 
 	return delimitSpace(
-		w.LHSField.SQL(),
+		w.LHSField.WhereClauseSQL(),
 		w.ComparisonType.SQL(),
 		rhs,
 	), nil
@@ -80,7 +80,7 @@ func (ws *Wheres) SQL() (string, error) {
 	sql := ""
 	for i, w := range ws.Wheres {
 		if i > 0 {
-			sql += ws.inclusiveSQL()
+			sql += ws.unionSQL()
 		}
 		s, err := w.SQL()
 		if err != nil {
@@ -91,7 +91,7 @@ func (ws *Wheres) SQL() (string, error) {
 	return sql, nil
 }
 
-func (ws *Wheres) inclusiveSQL() string {
+func (ws *Wheres) unionSQL() string {
 	if ws.IsInclusive {
 		return "AND"
 	}

@@ -33,6 +33,12 @@ func (t ComparisonType) IsExact() bool {
 	return t != Like && t != ILike
 }
 
+// IsLocate returns whether or not the comparison type should be written
+// as a Locate functionality
+func (t ComparisonType) IsLocate() bool {
+	return t == Locate
+}
+
 // SQL operator returns the string representation of the equality type
 func (t *ComparisonType) SQL() string {
 	if t == nil {

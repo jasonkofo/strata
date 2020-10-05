@@ -66,6 +66,11 @@ func (t *Table) AddStringField(name, friendlyName, formattedName string) {
 	t.Fields.addStringField(t.Alias, name, friendlyName, formattedName)
 }
 
+// AddEmptyField adds a single complex field type
+func (t *Table) AddEmptyField(name, friendlyName, formattedName string) {
+	t.Fields.addStringField(t.Alias, name, friendlyName, formattedName)
+}
+
 // AddNumberField adds a single complex field type
 func (t *Table) AddNumberField(name, friendlyName, formattedName string) {
 	t.Fields.addNumberField(t.Alias, name, friendlyName, formattedName)

@@ -16,7 +16,7 @@ type TableFields []TableField
 
 func (tf *TableField) pickFriendlyName() string {
 	if tf.FriendlyName != "" {
-		return " as " + tf.FriendlyName
+		return insertDoubleQuotes(tf.FriendlyName)
 	}
 	return ""
 }
@@ -91,9 +91,18 @@ func (tf *TableField) SQL() string {
 	}
 	sql := tf.pickSelectorName()
 	if suffix := tf.pickFriendlyName(); suffix != "" {
-		sql += " " + suffix
+		sql += " as " + suffix
 	}
 	return sql
+}
+
+// WhereClauseSQL returns the sql that would appear in a where clause
+func (tf *TableField) WhereClauseSQL() string {
+	if sn := tf.pickSelectorName(); sn != "" {
+		return sn
+	}
+
+	return ""
 }
 
 // ToSlice is a convenient method for returning a slice from

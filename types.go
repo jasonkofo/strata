@@ -14,7 +14,7 @@ type SQLElement interface {
 // Query is the second highest level of abstraction for the SQL result set -
 // they are joined together using unions
 type Query struct {
-	baseTable  Table
+	baseTable  *Table
 	joinTables JoinTables
 	Limit      int
 }
@@ -77,9 +77,7 @@ func (q *Query) SQL() (string, error) {
 	}
 
 	sql = delimitSpace(sql, "FROM", tables)
-
 	if where != "" {
-		fmt.Println(where)
 		sql = delimitSpace(sql, "WHERE", where)
 	}
 
@@ -91,7 +89,7 @@ func (q *Query) SQL() (string, error) {
 }
 
 // SetBaseTable definition
-func (q *Query) SetBaseTable(bt Table) {
+func (q *Query) SetBaseTable(bt *Table) {
 	one := randomString(4)
 	bt.Alias = &one
 	bt.Fields.setAlias(&one)
@@ -100,7 +98,7 @@ func (q *Query) SetBaseTable(bt Table) {
 
 // SetBaseTableFromProperties sets the base table
 func (q *Query) SetBaseTableFromProperties(name, schema string) {
-	q.baseTable = Table{
+	q.baseTable = &Table{
 		Name:   name,
 		Schema: schema,
 	}
